@@ -1,6 +1,6 @@
 # 👩🏻‍⚕️ Healthcare Claims – Where Is the Money Going?
 
-## 📚 Table of Contents
+##  Table of Contents
 - [Project Overview](#-project-overview)
 - [Business Questions](#-business-questions)
 - [SQL Data Model & Workflow](#-sql-data-model--workflow)
@@ -8,7 +8,7 @@
 - [Key Insights](#-key-insights)
 - [Business Questions – Summary of Findings](#-business-questions--summary-of-findings)
 
-## 📌 Project Overview
+##  Project Overview
 
 This project analyzes healthcare claims data to identify cost drivers, high-cost members, and reimbursement inefficiencies (margin leakage). The dashboard is designed to help executive stakeholders understand where healthcare spending is concentrated and where opportunities for cost optimization exist.
 
@@ -18,7 +18,7 @@ The project follows an end-to-end analytics workflow:
 - Analytical measures and visualizations using Power BI
 - Executive-focused dashboard design
 
-## 🎯 Business Questions
+##  Business Questions
 
 This project answers the following questions:
 
@@ -28,12 +28,12 @@ This project answers the following questions:
 - How do billed amounts compare to paid amounts?
 - Where are potential reimbursement inefficiencies (margin leakage)?
 
-## ⚙️ Tech Stack
+##  Tech Stack
 
 - SQL (MySQL) – data cleaning, validation, and analytics views
 - Power BI – data modeling, DAX measures, and dashboards
   
-## 🧱 SQL Data Model & Workflow
+##  SQL Data Model & Workflow
 ### 1. Schema Creation  ([`01_schema.sql`](sql/01_schema.sql))
 - claims – claim-level financial and procedure data
 - members – member demographics and enrollment information
@@ -166,13 +166,13 @@ ORDER BY total_paid DESC;
 ![Margin Leakage Analysis](<Power BI/margin_leakage.jpg>)
 
 
-## 💡 Key Insights
+##  Key Insights
 - A small subset of members accounts for a disproportionate share of total healthcare costs
 - Inpatient claims are the largest contributors to total paid amounts
 - Certain CPT codes have high financial exposure but low reimbursement efficiency
 - Paid-to-billed ratios vary significantly across providers, indicating potential margin leakage
 
-## ✅ Business Questions – Summary of Findings
+##  Business Questions – Summary of Findings
 
 This analysis answers the original business questions as follows:
 
