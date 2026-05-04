@@ -156,9 +156,8 @@ This analysis enables healthcare organizations to:
 healthcare-claims-analysis/
 │
 ├── data/
-│   ├── raw/
-│   │   ├── claims.csv
-│   │   └── members.csv
+│   ├── claims.csv
+│   └── members.csv
 │
 ├── sql/
 │   ├── 01_schema.sql
