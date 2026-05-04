@@ -1,189 +1,178 @@
-# 👩🏻‍⚕️ Healthcare Claims – Where Is the Money Going?
+# 👩🏻‍⚕️ Healthcare Claims Analytics: Cost Drivers, Risk Segmentation & Reimbursement Efficiency
 
-##  Table of Contents
-- [Project Overview](#-project-overview)
-- [Business Questions](#-business-questions)
-- [SQL Data Model & Workflow](#-sql-data-model--workflow)
-- [Power BI Dashboard](#-power-bi-dashboard)
-- [Key Insights](#-key-insights)
-- [Business Questions – Summary of Findings](#-business-questions--summary-of-findings)
+> End-to-end healthcare data analysis project using SQL and Power BI to uncover cost drivers, high-risk members, and reimbursement inefficiencies.
 
-##  Project Overview
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [Business Objectives](#business-objectives)
+- [Tech Stack](#tech-stack)
+- [Project Workflow](#project-workflow)
+- [Dashboard Overview](#dashboard-overview)
+- [Key Insights & Business Recommendations](#key-insights--business-recommendations)
+- [Business Impact](#business-impact)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Repository Structure](#repository-structure)
 
-This project analyzes healthcare claims data to identify cost drivers, high-cost members, and reimbursement inefficiencies (margin leakage). The dashboard is designed to help executive stakeholders understand where healthcare spending is concentrated and where opportunities for cost optimization exist.
+## Executive Summary
+This project delivers an end-to-end analysis of healthcare claims data to uncover the key drivers of medical spending, identify high-cost member segments, and evaluate reimbursement efficiency across providers and procedures.
 
-The project follows an end-to-end analytics workflow:
+Using SQL for data preparation and Power BI for visualization, the project transforms raw claims data into structured, analytics-ready datasets and translates them into actionable insights. The analysis is designed to support data-driven decision-making in healthcare cost management, financial optimization, and operational efficiency.
 
-- Data preparation and modeling using SQL
-- Analytical measures and visualizations using Power BI
-- Executive-focused dashboard design
+---
 
-##  Business Questions
+## Business Objectives
+This analysis addresses the following key questions:
 
-This project answers the following questions:
+- Which claim types contribute the most to total healthcare spending?  
+- Which CPT and ICD codes drive the highest costs?  
+- Which members account for the largest share of total spending?  
+- How do billed amounts compare to paid amounts?  
+- Where are potential reimbursement inefficiencies (margin leakage)?  
 
-- Which claim types are the most expensive?
-- Which CPT and ICD codes drive the highest healthcare spending?
-- Which members account for the largest share of total costs?
-- How do billed amounts compare to paid amounts?
-- Where are potential reimbursement inefficiencies (margin leakage)?
+---
 
-##  Tech Stack
+## Tech Stack
+- **SQL (MySQL):** Data cleaning, validation, transformation, and analysis  
+- **Power BI:** Data modeling, DAX measures, and dashboard development  
 
-- SQL (MySQL) – data cleaning, validation, and analytics views
-- Power BI – data modeling, DAX measures, and dashboards
-  
-##  SQL Data Model & Workflow
-### 1. Schema Creation  ([`01_schema.sql`](sql/01_schema.sql))
-- claims – claim-level financial and procedure data
-- members – member demographics and enrollment information
+---
 
-````sql
-CREATE TABLE claims (
-    claim_id VARCHAR(50) PRIMARY KEY,
-    member_id VARCHAR(50),
-    provider_id VARCHAR(50),
-    claim_date DATE,
-    claim_type VARCHAR(50),
-    cpt_code VARCHAR(20),
-    icd_code VARCHAR(20),
-    billed_amount DECIMAL(12,2),
-    paid_amount DECIMAL(12,2)
-)
-````
+## Project Workflow
 
-### 2. Data Cleaning & Validation ([`02_Cleaning.sql`](sql/02_Cleaning.sql))
-   
-**Key steps include:**
-  - Converting date fields from string to DATE format
-  - Checking missing or invalid financial values
-  - Checking and Removing claims with non-positive billed amounts
-  - Basic data quality checks (duplicates, anomalies)
-  
-````sql
-DELETE FROM claims
-WHERE billed_amount IS NULL
-   OR billed_amount <= 0;
-````
-### 3. Analytics Views ([`03_Analytic_View.sql`](sql/03_Analytic_View.sql))
-**Reusable views created to support reporting and analysis:**
-#### Member Level Aggregation
+### 1. Data Preparation & Modeling
+- Designed relational schema for claims and member datasets  
+- Structured data to support efficient querying and analysis  
+- Established relationships between claims, members, and providers  
 
-````sql
-CREATE VIEW vw_member_costs AS
-SELECT
-    member_id,
-    SUM(paid_amount) AS total_paid,
-    COUNT(*) AS claim_count
-FROM claims
-GROUP BY member_id;
-````
-#### Provider Reimbursement Efficiency
+### 2. Data Cleaning & Validation
+- Standardized date formats and data types  
+- Removed invalid records (e.g., non-positive billed amounts)  
+- Performed data quality checks for missing values, duplicates, and anomalies  
+- Ensured data accuracy and consistency across datasets  
 
-````sql
-CREATE VIEW vw_provider_efficiency AS
-SELECT
-    provider_id,
-    SUM(paid_amount) / SUM(billed_amount) AS provider_paid_ratio,
-    COUNT(*) AS claim_volume
-FROM claims
-GROUP BY provider_id;
-````
-#### Gold Analytics View (Primary Power BI Source)
+### 3. Analytical Data Modeling
+- Built reusable SQL views for member-level and provider-level analysis  
+- Created a **gold-layer analytical dataset** as a single source of truth  
+- Applied structured data modeling to support scalable reporting  
 
-````sql
-CREATE VIEW vw_claims_gold AS
-SELECT
-    c.claim_id,
-    c.claim_date,
-    YEAR(c.claim_date) AS claim_year,
-    MONTH(c.claim_date) AS claim_month,
-    c.claim_type,
-    c.cpt_code,
-    c.icd_code,
-    c.provider_id,
-    c.billed_amount,
-    c.paid_amount,
-    c.paid_amount / c.billed_amount AS paid_ratio,
-    m.member_age,
-    m.member_gender,
-    m.plan_type
-FROM claims c
-LEFT JOIN members m
-    ON c.member_id = m.member_id
-WHERE c.billed_amount > 0;
-````
-**This gold view serves as the single source of truth for Power BI.**
+### 4. Data Analysis & Visualization
+- Developed interactive dashboards in Power BI  
+- Created DAX measures for KPIs and reimbursement metrics  
+- Visualized trends, cost drivers, and efficiency patterns  
 
-### 4. Analytical Queries ([`04_analysis_queries.sql`](sql/04_analysis_queries.sql))
-**Standalone analytical queries used to validate insights using SQL window functions to identify high cost members.**
+---
 
-````sql
-WITH member_spend AS (
-    SELECT member_id, SUM(paid_amount) AS total_paid
-    FROM claims
-    GROUP BY member_id
-)
-SELECT
-    member_id,
-    total_paid,
-    SUM(total_paid) OVER (ORDER BY total_paid DESC)
-        / SUM(total_paid) OVER () AS cumulative_percentage
-FROM member_spend
-ORDER BY total_paid DESC;
-````
+## Dashboard Overview
 
-# 📊 Power BI Dashboard
-
-**The Power BI dashboard consists of four pages:**
-
-## 1. Executive Overview
-- Total Paid, Total Billed, and Paid Ratio KPIs
-- Monthly paid trend
+### Executive Overview
+- Total Paid, Total Billed, and Paid Ratio KPIs  
+- Monthly healthcare cost trends  
 - Claim type cost distribution
-  
+
 ![Executive Overview](<Power BI/dashboard_overview.jpg>)
 
-## 2. Procedure & Diagnosis Cost Drivers
-- Top 10 CPT and ICD codes by total paid amount
-- Average paid per claim for high impact procedures
+### Procedure & Diagnosis Cost Drivers
+- Top CPT and ICD codes by total cost  
+- Average cost per high-impact procedure
 
 ![Procedure & Diagnosis Cost Drivers](<Power BI/cost_drivers.jpg>)
-  
-## 3. High-Cost Member Analysis
-- Pareto analysis identifying members driving the majority of costs
-- Cost breakdown by claim type
+
+### High-Cost Member Analysis
+- Pareto analysis identifying high-cost members  
+- Cost distribution by claim type  
 - Member risk segmentation
 
 ![High-Cost Member Analysis](<Power BI/high_cost_members.jpg>)
 
-## 4. Margin Leakage Analysis
-- Paid ratio comparison by claim type, provider, and CPT code
-- Scatter plot highlighting high-billing CPT codes with low reimbursement efficiency
-- Provider-level reimbursement efficiency summary
-- Paid Ratio is calculated as Total Paid ÷ Total Billed (weighted ratio).
+### Margin Leakage Analysis
+- Paid-to-billed ratio by provider, claim type, and procedure  
+- Identification of high-billing, low-reimbursement cases  
+- Provider-level efficiency comparison
 
 ![Margin Leakage Analysis](<Power BI/margin_leakage.jpg>)
 
+---
 
-##  Key Insights
-- A small subset of members accounts for a disproportionate share of total healthcare costs
-- Inpatient claims are the largest contributors to total paid amounts
-- Certain CPT codes have high financial exposure but low reimbursement efficiency
-- Paid-to-billed ratios vary significantly across providers, indicating potential margin leakage
+## Key Insights & Business Recommendations
 
-##  Business Questions – Summary of Findings
+### 1. High-Cost Member Concentration
+- A small percentage of members accounts for the majority of total healthcare costs  
+- This concentration highlights significant financial risk within a limited population  
 
-This analysis answers the original business questions as follows:
+**Recommendation:**  
+Implement targeted care management programs for high-risk members to reduce long-term costs.
 
-- **Which claim types are the most expensive?**  
-  Inpatient and outpatient claims account for the largest share of total paid amounts, indicating that facility-based care is the primary cost driver.
-- **Which CPT and ICD codes drive the highest spending?**  
-  A small number of CPT and ICD codes contribute disproportionately to total costs, driven by both high claim volume and high average cost per claim.
-- **Which members account for the largest share of total costs?**  
-  Pareto analysis shows that a minority of members are responsible for the majority of total healthcare spending, consistent with the 80/20 rule.
-- **How do billed amounts compare to paid amounts?**  
-  Paid-to-billed ratios vary significantly by claim type, provider, and CPT code, indicating differences in reimbursement efficiency and negotiated rates.
-- **Where are potential reimbursement inefficiencies (margin leakage)?**  
-  Certain providers and procedures exhibit high billed amounts but relatively low paid ratios, highlighting potential opportunities for contract review and cost optimization.
+---
 
+### 2. Claim Type Cost Drivers
+- Inpatient and outpatient claims contribute the largest share of total spending  
+- Facility-based care is the primary cost driver  
+
+**Recommendation:**  
+Monitor utilization patterns and evaluate cost-control strategies for high-impact services.
+
+---
+
+### 3. Procedure-Level Cost Exposure
+- A limited number of CPT codes drive a disproportionate share of total costs  
+- These procedures combine high frequency with high average cost  
+
+**Recommendation:**  
+Prioritize these procedures for cost optimization and utilization review.
+
+---
+
+### 4. Reimbursement Inefficiency (Margin Leakage)
+- Paid-to-billed ratios vary significantly across providers and procedures  
+- Some high-cost services show low reimbursement efficiency  
+
+**Recommendation:**  
+Review provider contracts and renegotiate reimbursement structures where necessary.
+
+---
+
+## Business Impact
+This analysis enables healthcare organizations to:
+
+- Identify major cost drivers and spending concentrations  
+- Detect inefficiencies in reimbursement processes  
+- Improve financial planning and cost control strategies  
+- Support data-driven decision-making in healthcare operations  
+
+---
+
+## Skills Demonstrated
+- Data Cleaning & Validation  
+- SQL Querying (CTEs, Window Functions, Aggregations)  
+- Data Modeling & Analytical View Design  
+- Dashboard Development (Power BI, DAX)  
+- Business Insight Generation  
+- Healthcare Data Analysis  
+
+---
+
+## Repository Structure
+```text
+healthcare-claims-analysis/
+│
+├── data/
+│   ├── raw/
+│   │   ├── claims.csv
+│   │   └── members.csv
+│
+├── sql/
+│   ├── 01_schema.sql
+│   ├── 02_cleaning.sql
+│   ├── 03_analytic_views.sql
+│   └── 04_analysis_queries.sql
+│
+├── dashboard/
+│   ├── healthcare_claims_dashboard.pbix
+│   └── screenshots/
+│       ├── dashboard_overview.jpg
+│       ├── cost_drivers.jpg
+│       ├── high_cost_members.jpg
+│       └── margin_leakage.jpg
+│
+└── README.md
+```
